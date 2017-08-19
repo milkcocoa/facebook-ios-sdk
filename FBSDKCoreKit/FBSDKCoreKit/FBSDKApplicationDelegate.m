@@ -59,9 +59,6 @@ static NSString *const FBSDKAppLinkInboundEvent = @"fb_al_inbound";
   BOOL _expectingBackground;
   UIViewController *_safariViewController;
   BOOL _isDismissingSafariViewController;
-#ifdef __IPHONE_11_0
-  SFAuthenticationSession *_authenticationSession;
-#endif
 }
 
 #pragma mark - Class Methods
@@ -333,23 +330,6 @@ static NSString *const FBSDKAppLinkInboundEvent = @"fb_al_inbound";
 
   _expectingBackground = NO;
   _pendingURLOpen = sender;
-
-#ifdef __IPHONE_11_0
-  if ([sender isAuthenticationURL:url]) {
-    Class SFAuthenticationSessionClass = fbsdkdfl_SFAuthenticationSessionClass();
-    if (SFAuthenticationSessionClass != nil) {
-      _authenticationSession = [[SFAuthenticationSessionClass alloc] initWithURL:url callbackURLScheme:[FBSDKInternalUtility appURLScheme] completionHandler:^ (NSURL *aURL, NSError *error) {
-        handler(error == nil, error);
-        if (error == nil) {
-          [self application:[UIApplication sharedApplication] openURL:aURL sourceApplication:@"com.apple" annotation:nil];
-        }
-        _authenticationSession = nil;
-      }];
-      [_authenticationSession start];
-      return;
-    }
-  }
-#endif
 
   // trying to dynamically load SFSafariViewController class
   // so for the cases when it is available we can send users through Safari View Controller flow
